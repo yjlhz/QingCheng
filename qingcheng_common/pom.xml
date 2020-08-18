@@ -10,6 +10,7 @@
     <modelVersion>4.0.0</modelVersion>
 
     <artifactId>qingcheng_common</artifactId>
+
     <!--公共模块-->
     <dependencies>
         <!-- Spring -->
