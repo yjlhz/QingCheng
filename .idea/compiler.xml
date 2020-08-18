@@ -7,12 +7,12 @@
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
         <module name="qingcheng_interface" />
-        <module name="qingcheng_common_service" />
-        <module name="qingcheng_common" />
-        <module name="qingcheng_common_web" />
         <module name="qingcheng_web_manager" />
-        <module name="qingcheng_service_goods" />
+        <module name="qingcheng_common" />
         <module name="qingcheng_pojo" />
+        <module name="qingcheng_service_goods" />
+        <module name="qingcheng_common_service" />
+        <module name="qingcheng_common_web" />
       </profile>
     </annotationProcessing>
   </component>
