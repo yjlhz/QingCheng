@@ -5,7 +5,7 @@
 	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/task http://www.springframework.org/schema/task/spring-task.xsd">
   
-	<!--开启任务调度-->
-	<task:annotation-driven></task:annotation-driven>
+<!--	&lt;!&ndash;开启任务调度&ndash;&gt;-->
+<!--	<task:annotation-driven></task:annotation-driven>-->
 
 </beans>
