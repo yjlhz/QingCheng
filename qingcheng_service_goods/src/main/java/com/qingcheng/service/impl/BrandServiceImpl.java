@@ -56,6 +56,16 @@ public class BrandServiceImpl implements BrandService {
         brandMapper.insert(brand);
     }
 
+    @Override
+    public void update(Brand brand) {
+        brandMapper.updateByPrimaryKeySelective(brand);
+    }
+
+    @Override
+    public void delete(Integer id) {
+        brandMapper.deleteByPrimaryKey(id);
+    }
+
     private Example creatExample(Map<String, Object> searchMap){
         Example example = new Example(Brand.class);
         Example.Criteria criteria = example.createCriteria();

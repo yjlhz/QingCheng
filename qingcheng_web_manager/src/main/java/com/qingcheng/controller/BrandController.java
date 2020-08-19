@@ -48,4 +48,16 @@ public class BrandController {
         return new Result();
     }
 
+    @PostMapping("/update")
+    public Result update(@RequestBody Brand brand){
+        brandService.update(brand);
+        return new Result();
+    }
+
+    @GetMapping("/delete")
+    public Result delete(Integer id){
+        brandService.delete(id);
+        return new Result();
+    }
+
 }
