@@ -1,4 +1,4 @@
-package com.qingcheng.controller;
+package com.qingcheng.controller.goods;
 
 import com.alibaba.dubbo.config.annotation.Reference;
 import com.qingcheng.entity.PageResult;
