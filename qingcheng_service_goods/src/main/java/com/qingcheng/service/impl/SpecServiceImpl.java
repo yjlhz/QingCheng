@@ -85,9 +85,11 @@ public class SpecServiceImpl implements SpecService {
     @Transactional
     public void add(Spec spec) {
         specMapper.insert(spec);
-        //将模板中的规格数量+1
+        //通过主键找要增加的模板
         Template template = templateMapper.selectByPrimaryKey(spec.getTemplateId());
+        //将模板中的规格数量+1
         template.setSpecNum( template.getSpecNum()+1 );
+        //持久化到数据库
         templateMapper.updateByPrimaryKey(template);
     }
 

@@ -3,20 +3,26 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.qingcheng.dao.ParaMapper;
+import com.qingcheng.dao.TemplateMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.goods.Para;
+import com.qingcheng.pojo.goods.Template;
 import com.qingcheng.service.goods.ParaService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
 import java.util.Map;
 
-@Service
+@Service(interfaceClass = ParaService.class)
 public class ParaServiceImpl implements ParaService {
 
     @Autowired
     private ParaMapper paraMapper;
+
+    @Autowired
+    private TemplateMapper templateMapper;
 
     /**
      * 返回全部记录
@@ -75,8 +81,18 @@ public class ParaServiceImpl implements ParaService {
      * 新增
      * @param para
      */
+    @Transactional
     public void add(Para para) {
+        //插入新增的参数
         paraMapper.insert(para);
+        //通过主键找要增加的模板
+        Template template = templateMapper.selectByPrimaryKey(para.getTemplateId());
+        System.out.println(template);
+        //将模板中的参数数量+1
+        int num = template.getParaNum();
+        template.setParaNum(num+1);
+        //持久化到数据库
+        templateMapper.updateByPrimaryKey(template);
     }
 
     /**
@@ -91,7 +107,17 @@ public class ParaServiceImpl implements ParaService {
      *  删除
      * @param id
      */
+    @Transactional
     public void delete(Integer id) {
+        //根据id查找出对于属性
+        Para para = paraMapper.selectByPrimaryKey(id);
+        //根据属性的模板id找到所属模板
+        Template template = templateMapper.selectByPrimaryKey(para.getTemplateId());
+        //让模板的参数数量+1
+        template.setParaNum(template.getParaNum() - 1);
+        //持久化到数据库
+        templateMapper.updateByPrimaryKey(template);
+        //删除用户指定的规格
         paraMapper.deleteByPrimaryKey(id);
     }
 
