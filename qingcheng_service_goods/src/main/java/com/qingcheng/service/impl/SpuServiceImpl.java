@@ -1,22 +1,40 @@
 package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.qingcheng.dao.CategoryMapper;
+import com.qingcheng.dao.SkuMapper;
 import com.qingcheng.dao.SpuMapper;
 import com.qingcheng.entity.PageResult;
+import com.qingcheng.pojo.goods.Category;
+import com.qingcheng.pojo.goods.Goods;
+import com.qingcheng.pojo.goods.Sku;
 import com.qingcheng.pojo.goods.Spu;
 import com.qingcheng.service.goods.SpuService;
+import com.qingcheng.util.IdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
-@Service
+@Service(interfaceClass = SpuService.class)
 public class SpuServiceImpl implements SpuService {
 
     @Autowired
     private SpuMapper spuMapper;
+
+    @Autowired
+    private SkuMapper skuMapper;
+
+    @Autowired
+    private IdWorker idWorker;
+
+    @Autowired
+    private CategoryMapper categoryMapper;
 
     /**
      * 返回全部记录
@@ -93,6 +111,59 @@ public class SpuServiceImpl implements SpuService {
      */
     public void delete(String id) {
         spuMapper.deleteByPrimaryKey(id);
+    }
+
+    /**
+     * 保存商品
+     * @param goods
+     */
+
+    @Transactional
+    @Override
+    public void saveGoods(Goods goods) {
+
+        //保存一个spu的信息
+        //获取要保存的spu信息
+        Spu spu = goods.getSpu();
+        //用雪花算法生成id，便于分片管理
+        spu.setId(idWorker.nextId()+"");
+        //持久化到数据库
+        spuMapper.insert(spu);
+        //获取当前时间
+        Date date = new Date();
+        //查分类对象
+        Category category = categoryMapper.selectByPrimaryKey(spu.getCategory3Id());
+
+        //保存sku列表的信息
+        //获取sku的全部信息
+        List<Sku> skuList = goods.getSkuList();
+        //循环读取sku的信息并插入数据库
+        for (Sku sku : skuList){
+            //雪花算法得到id
+            sku.setId(idWorker.nextId()+"");
+            //设置spuid
+            sku.setSpuId(spu.getId());
+            //sku名称=spu名称+规格值列表（空格分隔）
+            String name = spu.getName();
+            //将取到的字符串转成map
+            Map<String,String> specMap = JSON.parseObject(sku.getSpec(), Map.class);
+            for (String value:specMap.values()){
+                name +=" " + value;
+            }
+            //设置名称
+            sku.setName(name);
+            sku.setCreateTime(date);//创建日期
+            sku.setUpdateTime(date);//修改日期
+            sku.setCategoryId(spu.getCategory3Id());//分类id
+            sku.setCategoryName(category.getName());//分类名称
+            sku.setCommentNum(0);//评论数初始值设置为0
+            sku.setSaleNum(0);//销售数量初始值设为0
+
+            //持久化到数据库
+            skuMapper.insert(sku);
+        }
+
+
     }
 
     /**

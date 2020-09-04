@@ -1,6 +1,7 @@
 package com.qingcheng.service.goods;
 
 import com.qingcheng.entity.PageResult;
+import com.qingcheng.pojo.goods.Goods;
 import com.qingcheng.pojo.goods.Spu;
 
 import java.util.List;
@@ -33,5 +34,7 @@ public interface SpuService {
 
 
     public void delete(String id);
+
+    public void saveGoods(Goods goods);
 
 }
