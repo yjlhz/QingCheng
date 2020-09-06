@@ -7,10 +7,8 @@ import com.qingcheng.dao.CategoryMapper;
 import com.qingcheng.dao.SkuMapper;
 import com.qingcheng.dao.SpuMapper;
 import com.qingcheng.entity.PageResult;
-import com.qingcheng.pojo.goods.Category;
-import com.qingcheng.pojo.goods.Goods;
-import com.qingcheng.pojo.goods.Sku;
-import com.qingcheng.pojo.goods.Spu;
+import com.qingcheng.pojo.goods.*;
+import com.qingcheng.dao.CategoryBrandMapper;
 import com.qingcheng.service.goods.SpuService;
 import com.qingcheng.util.IdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +33,9 @@ public class SpuServiceImpl implements SpuService {
 
     @Autowired
     private CategoryMapper categoryMapper;
+
+    @Autowired
+    private CategoryBrandMapper categoryBrandMapper;
 
     /**
      * 返回全部记录
@@ -125,11 +126,24 @@ public class SpuServiceImpl implements SpuService {
         //保存一个spu的信息
         //获取要保存的spu信息
         Spu spu = goods.getSpu();
-        //用雪花算法生成id，便于分片管理
-        spu.setId(idWorker.nextId()+"");
-        //持久化到数据库
-        spuMapper.insert(spu);
-        //获取当前时间
+
+        if (spu.getId() == null){//新增商品
+            //用雪花算法生成id，便于分片管理
+            spu.setId(idWorker.nextId()+"");
+            //持久化到数据库
+            spuMapper.insert(spu);
+            //获取当前时间
+        }else {//修改商品
+            //删除之前的sku列表
+            Example example = new Example(Sku.class);
+            Example.Criteria criteria = example.createCriteria();
+            criteria.andEqualTo("spuId",spu.getId());
+            skuMapper.deleteByExample(example);
+            //执行spu修改
+            spuMapper.updateByPrimaryKeySelective(spu);
+
+        }
+
         Date date = new Date();
         //查分类对象
         Category category = categoryMapper.selectByPrimaryKey(spu.getCategory3Id());
@@ -139,12 +153,20 @@ public class SpuServiceImpl implements SpuService {
         List<Sku> skuList = goods.getSkuList();
         //循环读取sku的信息并插入数据库
         for (Sku sku : skuList){
-            //雪花算法得到id
-            sku.setId(idWorker.nextId()+"");
+            if (sku.getId() == null){//新增情况
+                //雪花算法得到id
+                sku.setId(idWorker.nextId()+"");
+                sku.setCreateTime(date);//创建日期
+            }
+
             //设置spuid
             sku.setSpuId(spu.getId());
             //sku名称=spu名称+规格值列表（空格分隔）
             String name = spu.getName();
+            //判断商品是否有规格参数
+            if (sku.getSpec() == null || "".equals(sku.getSpec())){
+                sku.setSpec("{}");
+            }
             //将取到的字符串转成map
             Map<String,String> specMap = JSON.parseObject(sku.getSpec(), Map.class);
             for (String value:specMap.values()){
@@ -152,7 +174,6 @@ public class SpuServiceImpl implements SpuService {
             }
             //设置名称
             sku.setName(name);
-            sku.setCreateTime(date);//创建日期
             sku.setUpdateTime(date);//修改日期
             sku.setCategoryId(spu.getCategory3Id());//分类id
             sku.setCategoryName(category.getName());//分类名称
@@ -163,6 +184,32 @@ public class SpuServiceImpl implements SpuService {
             skuMapper.insert(sku);
         }
 
+        //建立分类和品牌的关联
+        CategoryBrand categoryBrand = new CategoryBrand();
+        categoryBrand.setCategoryId(spu.getCategory3Id());
+        categoryBrand.setBrandId(spu.getBrandId());
+        int count = categoryBrandMapper.selectCount(categoryBrand);
+        //如果为0则说明之前没有这个品牌和分类的商品，添加数据，如存在，则不需要往关联表中添加
+        if (count == 0){
+            categoryBrandMapper.insert(categoryBrand);
+        }
+
+    }
+
+    @Override
+    public Goods findGoodsById(String id) {
+        //查询spu
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        //查询sku
+        Example example = new Example(Sku.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("spuId",id);
+        List<Sku> skuList = skuMapper.selectByExample(example);
+        //封装为组合实体类
+        Goods goods = new Goods();
+        goods.setSpu(spu);
+        goods.setSkuList(skuList);
+        return goods;
 
     }
 

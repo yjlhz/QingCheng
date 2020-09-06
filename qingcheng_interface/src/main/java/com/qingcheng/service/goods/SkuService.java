@@ -1,6 +1,7 @@
 package com.qingcheng.service.goods;
 
 import com.qingcheng.entity.PageResult;
+import com.qingcheng.pojo.goods.Goods;
 import com.qingcheng.pojo.goods.Sku;
 
 import java.util.List;
@@ -33,5 +34,6 @@ public interface SkuService {
 
 
     public void delete(String id);
+
 
 }

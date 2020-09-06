@@ -68,4 +68,9 @@ public class SpuController {
         return new Result();
     }
 
+    @GetMapping("/findGoodsById")
+    public Goods findGoodsById(String id){
+        return spuService.findGoodsById(id);
+    }
+
 }
