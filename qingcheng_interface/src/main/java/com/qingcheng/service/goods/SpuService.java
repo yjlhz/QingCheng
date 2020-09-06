@@ -39,4 +39,12 @@ public interface SpuService {
 
     public Goods findGoodsById(String id);
 
+    public void audit(String id, String status, String message);
+
+    public void pull(String id);
+
+    public void put(String id);
+
+    public int putMany(String [] ids);
+
 }

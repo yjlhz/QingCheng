@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -210,6 +211,78 @@ public class SpuServiceImpl implements SpuService {
         goods.setSpu(spu);
         goods.setSkuList(skuList);
         return goods;
+
+    }
+
+    /**
+     * 商品审核
+     * @param id
+     * @param status
+     * @param message
+     */
+    @Override
+    public void audit(String id, String status, String message) {
+        //修改状态 审核状态和上架状态
+        Spu spu = new Spu();
+        spu.setId(id);
+        spu.setStatus(status);
+        if ("1".equals(status)){//审核通过的设置上下架状态
+            spu.setIsMarketable("1");//审核通过自动上架
+        }
+        spuMapper.updateByPrimaryKey(spu);
+
+        //记录商品审核记录
+
+        //记录审核日志
+
+
+    }
+
+    @Override
+    public void pull(String id) {
+        //修改状态
+        Spu spu = new Spu();
+        spu.setId(id);
+        spu.setIsMarketable("0");
+        spuMapper.updateByPrimaryKeySelective(spu);
+        //记录商品信息
+
+
+    }
+
+    @Override
+    public void put(String id) {
+        //修改状态
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        if ( !"1".equals(spu.getStatus()) ){
+            throw new RuntimeException("此商品未通过审核!");
+        }
+        spu.setIsMarketable("1");
+        spuMapper.updateByPrimaryKeySelective(spu);
+
+        //记录商品日志
+
+
+    }
+
+    /**
+     * 批量上架
+     * @param ids
+     * @return
+     */
+    @Override
+    public int putMany(String[] ids) {
+
+        //修改状态
+        Spu spu = new Spu();
+        spu.setIsMarketable("1");
+
+        Example example = new Example(Spu.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andIn("id", Arrays.asList(ids));
+        criteria.andEqualTo("isMarketabel","0");//下架的
+        criteria.andEqualTo("status","1");//审核通过的
+        return spuMapper.updateByExampleSelective(spu,example);
 
     }
 

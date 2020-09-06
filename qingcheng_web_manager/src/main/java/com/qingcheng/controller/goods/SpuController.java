@@ -73,4 +73,28 @@ public class SpuController {
         return spuService.findGoodsById(id);
     }
 
+    @PostMapping("/audit")
+    public Result audit(@RequestBody Map<String,String> map){
+        spuService.audit(map.get("id"),map.get("status"),map.get("message"));
+        return new Result();
+    }
+
+    @GetMapping("/pull")
+    public Result pull(String id){
+        spuService.pull(id);
+        return new Result();
+    }
+
+    @GetMapping("/put")
+    public Result put(String id){
+        spuService.put(id);
+        return new Result();
+    }
+
+    @GetMapping("/putMany")
+    public Result putMany(String[] ids){
+        int count = spuService.putMany(ids);
+        return new Result(0,"上架"+count+"个商品");
+    }
+
 }
