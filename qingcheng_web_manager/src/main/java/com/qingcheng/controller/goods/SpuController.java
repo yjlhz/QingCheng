@@ -110,4 +110,9 @@ public class SpuController {
         return new Result();
     }
 
+    @GetMapping("/findDeleteGoods")
+    public List<Goods> findDelteGoods(){
+        return spuService.findDeleteGoods();
+    }
+
 }

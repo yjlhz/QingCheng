@@ -58,4 +58,11 @@ public interface SpuService {
      */
     public void deleteGoods(String id);
 
+    /**
+     * 查询商品回收站里的商品
+     * @return
+     */
+    public List<Goods> findDeleteGoods();
+
+
 }

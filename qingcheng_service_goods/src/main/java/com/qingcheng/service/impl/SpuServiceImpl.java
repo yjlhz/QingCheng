@@ -12,10 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service(interfaceClass = SpuService.class)
 public class SpuServiceImpl implements SpuService {
@@ -316,6 +313,27 @@ public class SpuServiceImpl implements SpuService {
         //将是否是删除状态设置为0
         spu.setIsDelete("1");
         spuMapper.updateByPrimaryKeySelective(spu);
+    }
+
+    @Override
+    public List<Goods> findDeleteGoods() {
+        ArrayList<Goods> goods = new ArrayList<>();
+
+        Example example = new Example(Spu.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("isDelete","1");
+
+        List<Spu> spus = spuMapper.selectByExample(example);
+        for (Spu spu : spus) {
+            Goods goods1 = new Goods();
+            goods1.setSpu(spu);
+
+            List<Sku> skus = skuMapper.selectByExample(spu.getId());
+            goods1.setSkuList(skus);
+
+            goods.add(goods1);
+        }
+        return goods;
     }
 
     /**
