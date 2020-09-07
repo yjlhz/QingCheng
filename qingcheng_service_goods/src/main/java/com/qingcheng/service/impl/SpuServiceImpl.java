@@ -3,12 +3,9 @@ import com.alibaba.dubbo.config.annotation.Service;
 import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.qingcheng.dao.CategoryMapper;
-import com.qingcheng.dao.SkuMapper;
-import com.qingcheng.dao.SpuMapper;
+import com.qingcheng.dao.*;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.goods.*;
-import com.qingcheng.dao.CategoryBrandMapper;
 import com.qingcheng.service.goods.SpuService;
 import com.qingcheng.util.IdWorker;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +34,9 @@ public class SpuServiceImpl implements SpuService {
 
     @Autowired
     private CategoryBrandMapper categoryBrandMapper;
+
+    @Autowired
+    private AuditLogMapper auditLogMapper;
 
     /**
      * 返回全部记录
@@ -221,10 +221,10 @@ public class SpuServiceImpl implements SpuService {
      * @param message
      */
     @Override
+    @Transactional
     public void audit(String id, String status, String message) {
-        //修改状态 审核状态和上架状态
-        Spu spu = new Spu();
-        spu.setId(id);
+        //根据id获取spu
+        Spu spu = spuMapper.selectByPrimaryKey(id);
         spu.setStatus(status);
         if ("1".equals(status)){//审核通过的设置上下架状态
             spu.setIsMarketable("1");//审核通过自动上架
@@ -232,12 +232,24 @@ public class SpuServiceImpl implements SpuService {
         spuMapper.updateByPrimaryKey(spu);
 
         //记录商品审核记录
+        AuditLog auditLog = new AuditLog();
+        auditLog.setId(String.valueOf(idWorker.nextId()));
+        auditLog.setName(spu.getName());
+        auditLog.setStatus(status);
+        auditLog.setAuditTime(new Date());
+        auditLog.setAuditAdmin("lhz");
+        auditLog.setAuditMessage(message);
 
-        //记录审核日志
+        //插入数据库
+        auditLogMapper.insert(auditLog);
 
 
     }
 
+    /**
+     * 商品下架
+     * @param id
+     */
     @Override
     public void pull(String id) {
         //修改状态
@@ -250,6 +262,10 @@ public class SpuServiceImpl implements SpuService {
 
     }
 
+    /**
+     * 商品上架
+     * @param id
+     */
     @Override
     public void put(String id) {
         //修改状态
