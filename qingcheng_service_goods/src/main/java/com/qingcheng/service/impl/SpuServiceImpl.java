@@ -302,6 +302,22 @@ public class SpuServiceImpl implements SpuService {
 
     }
 
+    @Override
+    public void restoreGoods(String id) {
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        //将是否是删除状态设置为0
+        spu.setIsDelete("0");
+        spuMapper.updateByPrimaryKeySelective(spu);
+    }
+
+    @Override
+    public void deleteGoods(String id) {
+        Spu spu = spuMapper.selectByPrimaryKey(id);
+        //将是否是删除状态设置为0
+        spu.setIsDelete("1");
+        spuMapper.updateByPrimaryKeySelective(spu);
+    }
+
     /**
      * 构建查询条件
      * @param searchMap

@@ -47,4 +47,15 @@ public interface SpuService {
 
     public int putMany(String [] ids);
 
+    /**
+     * 还原商品
+     * @param id
+     */
+    public void restoreGoods(String id);
+
+    /**
+     * 删除商品
+     */
+    public void deleteGoods(String id);
+
 }

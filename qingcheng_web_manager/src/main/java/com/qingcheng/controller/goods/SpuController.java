@@ -97,4 +97,17 @@ public class SpuController {
         return new Result(0,"上架"+count+"个商品");
     }
 
+    @GetMapping("/restoreGoods")
+    public Result restoreGoods(String id){
+        spuService.restoreGoods(id);
+        return new Result();
+    }
+
+
+    @GetMapping("/deleteGoods")
+    public Result deleteGoods(String id){
+        spuService.deleteGoods(id);
+        return new Result();
+    }
+
 }
