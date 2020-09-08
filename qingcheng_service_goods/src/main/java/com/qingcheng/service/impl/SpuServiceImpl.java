@@ -315,6 +315,10 @@ public class SpuServiceImpl implements SpuService {
         spuMapper.updateByPrimaryKeySelective(spu);
     }
 
+    /**
+     * 查找回收站商品
+     * @return
+     */
     @Override
     public List<Goods> findDeleteGoods() {
         ArrayList<Goods> goods = new ArrayList<>();
@@ -327,8 +331,10 @@ public class SpuServiceImpl implements SpuService {
         for (Spu spu : spus) {
             Goods goods1 = new Goods();
             goods1.setSpu(spu);
-
-            List<Sku> skus = skuMapper.selectByExample(spu.getId());
+            Example example1 = new Example(Sku.class);
+            Example.Criteria criteria1 = example1.createCriteria();
+            criteria1.andEqualTo("spuId",spu.getId());
+            List<Sku> skus = skuMapper.selectByExample(example1);
             goods1.setSkuList(skus);
 
             goods.add(goods1);
