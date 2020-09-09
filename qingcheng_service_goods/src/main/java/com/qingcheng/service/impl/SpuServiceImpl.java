@@ -299,6 +299,10 @@ public class SpuServiceImpl implements SpuService {
 
     }
 
+    /**
+     * 恢复逻辑删除的商品
+     * @param id
+     */
     @Override
     public void restoreGoods(String id) {
         Spu spu = spuMapper.selectByPrimaryKey(id);
@@ -307,6 +311,10 @@ public class SpuServiceImpl implements SpuService {
         spuMapper.updateByPrimaryKeySelective(spu);
     }
 
+    /**
+     * 逻辑删除商品
+     * @param id
+     */
     @Override
     public void deleteGoods(String id) {
         Spu spu = spuMapper.selectByPrimaryKey(id);

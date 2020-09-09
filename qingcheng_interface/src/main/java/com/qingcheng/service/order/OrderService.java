@@ -2,6 +2,7 @@ package com.qingcheng.service.order;
 
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.order.Order;
+import com.qingcheng.pojo.order.Orders;
 
 import java.util.List;
 import java.util.Map;
@@ -33,5 +34,11 @@ public interface OrderService {
 
 
     public void delete(String id);
+
+    /**
+     * 根据id查找订单列表
+     * @param id
+     */
+    public Orders findOrdersById(String id);
 
 }

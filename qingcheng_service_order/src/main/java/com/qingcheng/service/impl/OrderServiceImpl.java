@@ -2,11 +2,15 @@ package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.qingcheng.dao.OrderItemMapper;
 import com.qingcheng.dao.OrderMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.order.Order;
+import com.qingcheng.pojo.order.OrderItem;
+import com.qingcheng.pojo.order.Orders;
 import com.qingcheng.service.order.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
 import java.util.List;
@@ -17,6 +21,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderMapper orderMapper;
+
+    @Autowired
+    private OrderItemMapper orderItemMapper;
 
     /**
      * 返回全部记录
@@ -93,6 +100,30 @@ public class OrderServiceImpl implements OrderService {
      */
     public void delete(String id) {
         orderMapper.deleteByPrimaryKey(id);
+    }
+
+    /**
+     * 根据id查找订单列表
+     * @param id
+     */
+    @Override
+    @Transactional
+    public Orders findOrdersById(String id) {
+        //新建order对象
+        Orders orders = new Orders();
+        //根据id查找对应的订单
+        Order order = orderMapper.selectByPrimaryKey(id);
+        //将订单放到orders中
+        orders.setOrder(order);
+        //作条件查询，新建example
+        Example example = new Example(OrderItem.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("orderId",id);
+        //查询出该id订单下的订单详细
+        List<OrderItem> orderItemList = orderItemMapper.selectByExample(example);
+        orders.setOrderItemList(orderItemList);
+        //返回包含订单和订单详细的orders
+        return orders;
     }
 
     /**
