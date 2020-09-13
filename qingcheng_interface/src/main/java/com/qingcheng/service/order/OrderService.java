@@ -52,4 +52,18 @@ public interface OrderService {
      */
     public void orderTimeOutLogic();
 
+    /**
+     * 合并订单
+     * @param order1
+     * @param order2
+     */
+    public void merge(String order1,String order2);
+
+    /**
+     * 拆分订单
+     * @param id
+     * @param num
+     */
+    public void split(String id,String num);
+
 }

@@ -37,6 +37,9 @@ public class OrderServiceImpl implements OrderService {
     @Autowired
     private OrderConfigMapper orderConfigMapper;
 
+    @Autowired
+    private IdWorker idWorker;
+
 
     /**
      * 返回全部记录
@@ -213,6 +216,66 @@ public class OrderServiceImpl implements OrderService {
             orderMapper.updateByPrimaryKeySelective(order);//更新到数据库
 
         }
+
+    }
+
+    /**
+     * 合并订单
+     * @param order1
+     * @param order2
+     */
+    @Override
+    @Transactional
+    public void merge(String order1, String order2) {
+        Order majorOrder = orderMapper.selectByPrimaryKey(order1);//根据id查询用户选择的主订单
+        Order subordinateOrder = orderMapper.selectByPrimaryKey(order2);//根据id查询用户选择的从订单
+        majorOrder.setTotalMoney(majorOrder.getTotalMoney() + subordinateOrder.getTotalMoney());//将总金额相加
+        majorOrder.setTotalNum(majorOrder.getTotalNum() + subordinateOrder.getTotalNum());//将数量相加
+        majorOrder.setPayMoney(majorOrder.getPreMoney() + subordinateOrder.getPreMoney());
+        orderMapper.updateByPrimaryKeySelective(majorOrder);
+        //做条件查询
+        Example example = new Example(OrderItem.class);
+        Example.Criteria criteria = example.createCriteria();
+        //将从订单的orderItem查询出来
+        criteria.andEqualTo("orderId",order2);
+        List<OrderItem> orderItems = orderItemMapper.selectByExample(example);
+        //将从订单的orderItem的orderId设置成主订单id
+        for (OrderItem orderItem : orderItems){
+            orderItem.setOrderId(order1);
+            orderItemMapper.updateByPrimaryKeySelective(orderItem);
+        }
+        //将从订单逻辑删除
+        subordinateOrder.setIsDelete("1");
+        orderMapper.updateByPrimaryKeySelective(subordinateOrder);
+    }
+
+    /**
+     * 拆分订单
+     * @param id
+     * @param num
+     */
+    @Override
+    public void split(String id, String num) {
+        //条件查询
+        Example example = new Example(OrderItem.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andEqualTo("orderId",id);
+        int count = orderItemMapper.selectCountByExample(example);
+        if (count <= Integer.valueOf(num)){
+            throw new RuntimeException("拆分数量要小于订单详细的数量!");
+        }
+        Order newOrder = new Order();//新建一个订单，作为拆分出来的新订单
+        newOrder.setId(idWorker.nextId()+"");//雪花算法设置新订单id
+
+        List<OrderItem> orderItems = orderItemMapper.selectByExample(example);//查询详细订单列表
+        OrderItem[] orderItems1 = (OrderItem[])orderItems.toArray();
+        //将i个放到新订单中
+        for (int i = 0; i < Integer.valueOf(num);i++){
+            //更新orderId
+            orderItems1[i].setOrderId(newOrder.getId());
+            orderItemMapper.updateByPrimaryKeySelective(orderItems1[i]);
+        }
+        orderMapper.insert(newOrder);
 
     }
 

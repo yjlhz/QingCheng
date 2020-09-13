@@ -73,5 +73,17 @@ public class OrderController {
         return new Result();
     }
 
+    @GetMapping("/merge")
+    public Result merge(String order1,String order2){
+        orderService.merge(order1,order2);
+        return new Result();
+    }
+
+    @PostMapping("/split")
+    public Result split(@RequestBody Map<String,String> map){
+        orderService.split(map.get("id"),map.get("num"));
+        return new Result();
+    }
+
 
 }
