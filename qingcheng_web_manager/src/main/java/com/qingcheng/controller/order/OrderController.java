@@ -67,5 +67,11 @@ public class OrderController {
         return orderService.findOrdersById(id);
     }
 
+    @PostMapping("/batchSend")
+    public Result batchSend(@RequestBody List<Order> orders){
+        orderService.batchSend(orders);
+        return new Result();
+    }
+
 
 }

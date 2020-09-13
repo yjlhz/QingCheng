@@ -41,4 +41,10 @@ public interface OrderService {
      */
     public Orders findOrdersById(String id);
 
+    /**
+     * 批量发货
+     * @param orders
+     */
+    public void batchSend(List<Order> orders);
+
 }

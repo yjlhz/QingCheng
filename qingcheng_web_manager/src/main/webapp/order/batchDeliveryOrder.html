@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>批量发货</title>
+    <!-- 引入样式 -->
+    <link rel="stylesheet" href="../css/index.css">
+    <link rel="stylesheet" href="../plugins/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="../css/style.css">
+    <script src="/js/vue.js"></script>
+    <script src="/js/axios.js"></script>
+    <script src="/js/elementui.js"></script>
+</head>
+<body class="hold-transition">
+<div id="app">
+
+    <div class="content-header">
+        <h1>管理
+            <small>批量发货管理</small>
+        </h1>
+        <el-breadcrumb separator-class="el-icon-arrow-right" class="breadcrumb">
+            <el-breadcrumb-item :to="{ path: '/' }">首页</el-breadcrumb-item>
+            <el-breadcrumb-item>管理</el-breadcrumb-item>
+            <el-breadcrumb-item>order管理</el-breadcrumb-item>
+        </el-breadcrumb>
+    </div>
+
+    <div class="app-container">
+        <div class="box">
+            <el-button type="primary" plain @click="batchDelivery()">批量发货</el-button>
+            <el-table :data="tableData" border style="width: 100%;margin-top: 10px" @selection-change="getOrders">
+                <el-table-column type="selection" width="55"></el-table-column>
+                <el-table-column prop="id" label="订单编号" width="180"></el-table-column>
+                <el-table-column prop="createTime" label="提交时间" width="180"></el-table-column>
+                <el-table-column prop="username" label="用户名称" width="180"></el-table-column>
+                <el-table-column prop="totalMoney" label="金额合计" width="80"></el-table-column>
+                <el-table-column label="支付方式" width="80">
+                    <template slot-scope="scope">
+                        <span v-if="scope.row.payType=='1'">在线支付</span>
+                        <span v-if="scope.row.payType=='0'">货到付款</span>
+                    </template>
+                </el-table-column>
+                <el-table-column prop="sourceType" label="订单来源" width="80">
+                    <template slot-scope="scope">
+                        <span v-if="scope.row.sourceType=='1'">web</span>
+                        <span v-if="scope.row.sourceType=='2'">app</span>
+                        <span v-if="scope.row.sourceType=='3'">微信公众号</span>
+                        <span v-if="scope.row.sourceType=='4'">微信小程序</span>
+                        <span v-if="scope.row.sourceType=='5'">H5手机页面</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="订单状态" width="80">
+                    <template slot-scope="scope">
+                        <span v-if="scope.row.orderStatus=='0'">待付款</span>
+                        <span v-if="scope.row.orderStatus=='1'">待发货</span>
+                        <span v-if="scope.row.orderStatus=='2'">已发货</span>
+                        <span v-if="scope.row.orderStatus=='3'">已完成</span>
+                        <span v-if="scope.row.orderStatus=='4'">已关闭</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="配送方式">
+                    <template slot-scope="scope">
+                        <el-select v-model="scope.row.shippingName" placeholder="请选择物流公司">
+                            <el-option
+                                    v-for="item in options"
+                                    :key="item.value"
+                                    :label="item.label"
+                                    :value="item.value">
+                            </el-option>
+                        </el-select>
+                    </template>
+                </el-table-column>
+                <el-table-column label="物流单号">
+                    <template slot-scope="scope">
+                        <el-input v-model="scope.row.shippingCode" placeholder="请输入物流单号"></el-input>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <div class="pagination-container">
+                <el-pagination
+                        class="pagiantion"
+                        @size-change="fetchData"
+                        @current-change="fetchData"
+                        :current-page.sync="currentPage"
+                        :page-sizes="[10, 20, 30, 40]"
+                        :page-size="size"
+                        layout="total, sizes, prev, pager, next, jumper"
+                        :total="total">
+                </el-pagination>
+            </div>
+        </div>
+    </div>
+
+
+</div>
+</body>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                tableData: [],
+                currentPage: 1,
+                total: 10,
+                size: 10,
+                searchMap: {},
+                pojo: {},
+                formVisible: false,
+                imageUrl: '',
+                options:[{
+                        value:'0',
+                        label:'京东'
+                    },
+                    {
+                        value:'1',
+                        label:'顺丰'
+                    },
+                    {
+                        value:'2',
+                        label:'圆通'
+                    }
+                ],
+                orders:[]       //批量发货的订单集合
+            }
+        },
+        created() {
+            this.searchMap.orderStatus='1';
+            this.fetchData();
+        },
+        methods: {
+            fetchData() {
+                axios.post(`/order/findPage.do?page=${this.currentPage}&size=${this.size}`, this.searchMap).then(response => {
+                    this.tableData = response.data.rows;
+                    this.total = response.data.total;
+                });
+            },
+            //批量发货
+            batchDelivery(){
+                console.log(this.orders.length);
+                if (this.orders.length==0){
+                    //如果未选中订单
+                    this.$alert("请选择需要发货的订单！！！");
+                } else{
+                    this.$confirm('确定要进行批量发货操作吗?', '提示', {
+                        confirmButtonText: '确定',
+                        cancelButtonText: '取消',
+                        type: 'warning'
+                    }).then(() => {
+                        axios.post(`/order/batchSend.do`,this.orders).then(response => {
+                            if (response.data.code==1) {
+                                this.$alert(response.data.message);
+                            }else{
+                                window.location.href = "order.html";
+                            }
+                        })
+                    })
+                }
+
+            },
+            //获取订单集合
+            getOrders(val){
+                console.log(val);
+                this.orders = val;
+            }
+
+        }
+    })
+</script>
+</html>

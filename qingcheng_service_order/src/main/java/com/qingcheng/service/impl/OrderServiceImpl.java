@@ -1,18 +1,24 @@
 package com.qingcheng.service.impl;
+
 import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.qingcheng.dao.OrderItemMapper;
+import com.qingcheng.dao.OrderLogMapper;
 import com.qingcheng.dao.OrderMapper;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.order.Order;
 import com.qingcheng.pojo.order.OrderItem;
+import com.qingcheng.pojo.order.OrderLog;
 import com.qingcheng.pojo.order.Orders;
 import com.qingcheng.service.order.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
+import com.qingcheng.util.IdWorker;
 
+import java.util.Arrays;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -24,6 +30,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderItemMapper orderItemMapper;
+
+    @Autowired
+    private OrderLogMapper orderLogMapper;
 
     /**
      * 返回全部记录
@@ -127,6 +136,51 @@ public class OrderServiceImpl implements OrderService {
     }
 
     /**
+     * 批量发货
+     * @param orders
+     */
+    @Override
+    @Transactional
+    public void batchSend(List<Order> orders) {
+        IdWorker idWorker = new IdWorker();
+
+        Date date = new Date();
+        for (Order order : orders) {
+            //判断物流单号和物流公司是否为空
+            if (order.getShippingName()==null){
+                //如果为空则抛出异常
+                throw  new RuntimeException("请选择物流公司!!");
+            }
+
+            if (order.getShippingCode()==null){
+                throw new RuntimeException("物流单号不能为空!!");
+            }
+        }
+
+        for (Order order : orders) {
+            //如果都不为空 则更新订单状态、发货状态、发货时间,添加物流公司和物流单号
+            order.setConsignTime(date);//发货时间
+            order.setConsignStatus("1");//发货状态
+            order.setOrderStatus("2");//订单状态
+            orderMapper.updateByPrimaryKey(order);
+
+            //记录订单日志
+            OrderLog orderLog = new OrderLog();
+            orderLog.setId(String.valueOf(idWorker.nextId()));      //分布式id
+            orderLog.setOperater("yjlhz");  //操作员
+            orderLog.setOperateTime(date);      //操作时间
+            orderLog.setOrderId(Long.valueOf(order.getId())); //订单号
+            orderLog.setOrderStatus("2");       //订单状态
+            orderLog.setPayStatus("1");     //付款状态
+            orderLog.setConsignStatus("2");    //发货状态
+            orderLog.setRemarks("该订单已完成");    //备注
+
+            orderLogMapper.insert(orderLog);
+        }
+
+    }
+
+    /**
      * 构建查询条件
      * @param searchMap
      * @return
@@ -135,6 +189,10 @@ public class OrderServiceImpl implements OrderService {
         Example example=new Example(Order.class);
         Example.Criteria criteria = example.createCriteria();
         if(searchMap!=null){
+            //根据id数组查询
+            if (searchMap.get("ids") != null){
+                criteria.andIn("id", Arrays.asList((String[])searchMap.get("ids")));
+            }
             // 订单id
             if(searchMap.get("id")!=null && !"".equals(searchMap.get("id"))){
                 criteria.andLike("id","%"+searchMap.get("id")+"%");
