@@ -34,4 +34,18 @@ public interface ReturnOrderService {
 
     public void delete(Long id);
 
+    /**
+     * 同意退款
+     * @param id
+     */
+    public void agreeRefund(String id,Integer money,Integer adminId );
+
+    /**
+     * 驳回退款请求
+     * @param id
+     * @param remark
+     * @param adminId
+     */
+    public void rejectRefund(String id,String remark,Integer adminId );
+
 }

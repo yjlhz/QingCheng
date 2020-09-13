@@ -2,13 +2,19 @@ package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.qingcheng.dao.OrderItemMapper;
+import com.qingcheng.dao.ReturnOrderItemMapper;
 import com.qingcheng.dao.ReturnOrderMapper;
 import com.qingcheng.entity.PageResult;
+import com.qingcheng.pojo.order.OrderItem;
 import com.qingcheng.pojo.order.ReturnOrder;
+import com.qingcheng.pojo.order.ReturnOrderItem;
 import com.qingcheng.service.order.ReturnOrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -17,6 +23,12 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
 
     @Autowired
     private ReturnOrderMapper returnOrderMapper;
+
+    @Autowired
+    private ReturnOrderItemMapper returnOrderItemMapper;
+
+    @Autowired
+    private OrderItemMapper orderItemMapper;
 
     /**
      * 返回全部记录
@@ -93,6 +105,68 @@ public class ReturnOrderServiceImpl implements ReturnOrderService {
      */
     public void delete(Long id) {
         returnOrderMapper.deleteByPrimaryKey(id);
+    }
+
+    /**
+     * 同意退款流程
+     * @param id
+     * @param money
+     * @param adminId
+     */
+    @Override
+    @Transactional
+    public void agreeRefund(String id, Integer money, Integer adminId) {
+        //根据id查找要退款的订单
+        ReturnOrder returnOrder = returnOrderMapper.selectByPrimaryKey(id);
+        //验证订单状态
+        if (returnOrder == null){
+            throw new RuntimeException("退款订单不存在,请重试!");
+        }
+        if (money<0 || money>returnOrder.getReturnMoney()){
+            throw new RuntimeException("退款金额不合法!");
+        }
+        if (!returnOrder.getStatus().equals("2")){
+            throw new RuntimeException("不是退款订单!!");
+        }
+        returnOrder.setReturnMoney(money);//退款金额
+        returnOrder.setStatus("1");//1代表同意退款
+        returnOrder.setAdminId(adminId);//管理人id
+        returnOrder.setDisposeTime(new Date());//处理日期
+        returnOrderMapper.updateByPrimaryKeySelective(returnOrder);//保存到数据库
+        //修改订单明细的状态
+        Example example = new Example(ReturnOrderItem.class);
+        Example.Criteria criteria = example.createCriteria();//条件查询
+        criteria.andEqualTo("returnOrderId",id);
+        List<ReturnOrderItem> returnOrderItems = returnOrderItemMapper.selectByExample(example);
+        for (ReturnOrderItem returnOrderItem : returnOrderItems){
+            OrderItem orderItem = new OrderItem();
+            orderItem.setId(returnOrderItem.getOrderItemId()+"");//设置id
+            orderItem.setIsReturn("0");
+            orderItemMapper.updateByPrimaryKeySelective(orderItem);//更新数据库状态
+        }
+
+    }
+
+    @Override
+    public void rejectRefund(String id, String remark, Integer adminId) {
+        //根据id查找要退款的订单
+        ReturnOrder returnOrder = returnOrderMapper.selectByPrimaryKey(id);
+        if (returnOrder == null) {
+            throw new RuntimeException("所选订单不存在!");
+        }
+        if (remark.length() < 5) {
+            throw new RuntimeException("请输入驳回理由，长度不得小于5!");
+        }
+        if (!returnOrder.getType().equals("2")) {
+            throw new RuntimeException("所选订单不是退款订单!");
+        }
+        //更改订单状态
+        returnOrder.setRemark(remark);//驳回理由
+        returnOrder.setStatus("2");//2代表驳回
+        returnOrder.setAdminId(adminId);//管理人id
+        returnOrder.setDisposeTime(new Date());//处理时间
+        returnOrderMapper.updateByPrimaryKeySelective(returnOrder);//保存到数据库
+
     }
 
     /**

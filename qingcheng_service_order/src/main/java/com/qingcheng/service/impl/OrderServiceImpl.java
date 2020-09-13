@@ -6,11 +6,9 @@ import com.github.pagehelper.PageHelper;
 import com.qingcheng.dao.OrderItemMapper;
 import com.qingcheng.dao.OrderLogMapper;
 import com.qingcheng.dao.OrderMapper;
+import com.qingcheng.dao.ReturnOrderMapper;
 import com.qingcheng.entity.PageResult;
-import com.qingcheng.pojo.order.Order;
-import com.qingcheng.pojo.order.OrderItem;
-import com.qingcheng.pojo.order.OrderLog;
-import com.qingcheng.pojo.order.Orders;
+import com.qingcheng.pojo.order.*;
 import com.qingcheng.service.order.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
@@ -33,6 +31,9 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private OrderLogMapper orderLogMapper;
+
+    @Autowired
+    private ReturnOrderMapper returnOrderMapper;
 
     /**
      * 返回全部记录
@@ -179,6 +180,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
     }
+
+
 
     /**
      * 构建查询条件
