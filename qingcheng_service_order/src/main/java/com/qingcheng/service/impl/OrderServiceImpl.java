@@ -3,10 +3,7 @@ package com.qingcheng.service.impl;
 import com.alibaba.dubbo.config.annotation.Service;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.qingcheng.dao.OrderItemMapper;
-import com.qingcheng.dao.OrderLogMapper;
-import com.qingcheng.dao.OrderMapper;
-import com.qingcheng.dao.ReturnOrderMapper;
+import com.qingcheng.dao.*;
 import com.qingcheng.entity.PageResult;
 import com.qingcheng.pojo.order.*;
 import com.qingcheng.service.order.OrderService;
@@ -15,6 +12,8 @@ import org.springframework.transaction.annotation.Transactional;
 import tk.mybatis.mapper.entity.Example;
 import com.qingcheng.util.IdWorker;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
@@ -34,6 +33,10 @@ public class OrderServiceImpl implements OrderService {
 
     @Autowired
     private ReturnOrderMapper returnOrderMapper;
+
+    @Autowired
+    private OrderConfigMapper orderConfigMapper;
+
 
     /**
      * 返回全部记录
@@ -181,6 +184,37 @@ public class OrderServiceImpl implements OrderService {
 
     }
 
+    @Override
+    public void orderTimeOutLogic() {
+        //订单超时未付款自动关闭
+        //查询超时时间
+        OrderConfig orderConfig = orderConfigMapper.selectByPrimaryKey(1);
+        Integer orderTimeout = orderConfig.getOrderTimeout();//超时时间,分钟
+        LocalDateTime localTime = LocalDateTime.now().minusMinutes(orderTimeout);//得到超时时间点
+        //条件查询
+        Example example = new Example(Order.class);
+        Example.Criteria criteria = example.createCriteria();
+        criteria.andLessThan("createTime",localTime);//创建时间小于超时时间证明已超时
+        criteria.andEqualTo("orderStatus","0");//0代表未付款的
+        criteria.andEqualTo("isDelete","0");//0代表未删除的
+        List<Order> orders = orderMapper.selectByExample(example);
+        //处理查询出来的超时订单
+        for (Order order : orders){
+            OrderLog orderLog = new OrderLog();
+            orderLog.setOperater("system");//系统自动操作
+            orderLog.setOperateTime(new Date());//系统自动操作的时间
+            orderLog.setOrderStatus("4");
+            orderLog.setPayStatus(order.getConsignStatus());
+            orderLog.setRemarks("订单超时，自动关闭!");
+            orderLog.setOrderId(Long.valueOf(order.getId()));
+            orderLogMapper.insert(orderLog);//保存到数据库订单日志中
+            order.setOrderStatus("4");
+            order.setCloseTime(new Date());//关闭日期
+            orderMapper.updateByPrimaryKeySelective(order);//更新到数据库
+
+        }
+
+    }
 
 
     /**

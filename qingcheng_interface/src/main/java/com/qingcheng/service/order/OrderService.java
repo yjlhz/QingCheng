@@ -47,6 +47,9 @@ public interface OrderService {
      */
     public void batchSend(List<Order> orders);
 
-
+    /**
+     * 订单超时处理逻辑
+     */
+    public void orderTimeOutLogic();
 
 }
