@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
 	xmlns:p="http://www.springframework.org/schema/p"
 	xmlns:context="http://www.springframework.org/schema/context"
 	xmlns:dubbo="http://code.alibabatech.com/schema/dubbo"
@@ -27,8 +27,6 @@
 	  </mvc:message-converters>
 	</mvc:annotation-driven>
 
-
-
 	<!-- 文件上传 -->
 	<bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
 		<property name="maxUploadSize" value="104857600" />
@@ -44,6 +42,6 @@
 	</bean>
 
 	<!--开启任务调度-->
-	<task:annotation-driven/>
+	<task:annotation-driven></task:annotation-driven>
 
 </beans>
