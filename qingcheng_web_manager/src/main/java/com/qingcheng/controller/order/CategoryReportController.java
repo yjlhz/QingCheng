@@ -23,7 +23,7 @@ public class CategoryReportController {
      */
     @GetMapping("/yesterday")
     public List<CategoryReport> yesterday(){
-        LocalDate localDate = LocalDate.now().minusDays(522);//得到昨天的日期
+        LocalDate localDate = LocalDate.now().minusDays(1);//得到昨天的日期
         return categoryReportService.categoryReport(localDate);
     }
 
