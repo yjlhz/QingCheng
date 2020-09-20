@@ -8,4 +8,7 @@ import java.util.List;
 public interface CategoryReportService {
 
     public List<CategoryReport> categoryReport(LocalDate date);
+
+    public void creatDate();
+
 }
