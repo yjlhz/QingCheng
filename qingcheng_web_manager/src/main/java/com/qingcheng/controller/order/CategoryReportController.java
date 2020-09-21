@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/categoryReport")
@@ -23,8 +24,13 @@ public class CategoryReportController {
      */
     @GetMapping("/yesterday")
     public List<CategoryReport> yesterday(){
-        LocalDate localDate = LocalDate.now().minusDays(524);//得到昨天的日期
+        LocalDate localDate = LocalDate.now().minusDays(1);//得到昨天的日期
         return categoryReportService.categoryReport(localDate);
+    }
+
+    @GetMapping("/category1Count")
+    public List<Map> category1Count(String date1,String date2){
+        return categoryReportService.category1Count(date1,date2);
     }
 
 }

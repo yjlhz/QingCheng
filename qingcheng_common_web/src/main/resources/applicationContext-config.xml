@@ -41,7 +41,5 @@
 		<constructor-arg index="2" value="GfxoxC04UxMXInc85CFzG8gVRknsp4"></constructor-arg>
 	</bean>
 
-	<!--开启任务调度-->
-	<task:annotation-driven></task:annotation-driven>
 
 </beans>

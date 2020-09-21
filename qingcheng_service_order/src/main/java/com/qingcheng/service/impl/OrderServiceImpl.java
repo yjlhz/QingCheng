@@ -204,6 +204,7 @@ public class OrderServiceImpl implements OrderService {
         //处理查询出来的超时订单
         for (Order order : orders){
             OrderLog orderLog = new OrderLog();
+            orderLog.setId(idWorker.nextId()+"");
             orderLog.setOperater("system");//系统自动操作
             orderLog.setOperateTime(new Date());//系统自动操作的时间
             orderLog.setOrderStatus("4");

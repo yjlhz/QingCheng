@@ -21,7 +21,7 @@ public class OrderTask{
     @Reference
     private CategoryReportService categoryReportService;
 
-    @Scheduled(cron = "0 0 1 * * ?")
+    @Scheduled(cron = "* * 1 * * ?")
     public void creatCateReportDate(){
         System.out.println("生成类目统计数据!");
         categoryReportService.creatDate();
