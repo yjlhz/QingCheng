@@ -188,6 +188,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
     public void orderTimeOutLogic() {
         //订单超时未付款自动关闭
         //查询超时时间

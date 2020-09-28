@@ -12,7 +12,7 @@ import tk.mybatis.mapper.entity.Example;
 import java.util.List;
 import java.util.Map;
 
-@Service
+@Service(interfaceClass = AdminService.class)
 public class AdminServiceImpl implements AdminService {
 
     @Autowired
@@ -106,7 +106,8 @@ public class AdminServiceImpl implements AdminService {
         if(searchMap!=null){
             // 用户名
             if(searchMap.get("loginName")!=null && !"".equals(searchMap.get("loginName"))){
-                criteria.andLike("loginName","%"+searchMap.get("loginName")+"%");
+//                criteria.andLike("loginName","%"+searchMap.get("loginName")+"%");
+                criteria.andEqualTo("loginName",searchMap.get("loginName"));
             }
             // 密码
             if(searchMap.get("password")!=null && !"".equals(searchMap.get("password"))){
@@ -114,7 +115,7 @@ public class AdminServiceImpl implements AdminService {
             }
             // 状态
             if(searchMap.get("status")!=null && !"".equals(searchMap.get("status"))){
-                criteria.andLike("status","%"+searchMap.get("status")+"%");
+                criteria.andLike("status",searchMap.get("status")+"");
             }
 
             // id
