@@ -10,22 +10,22 @@ import java.util.Date;
 
 @Component
 public class OrderTask{
-    @Reference
-    private OrderService orderService;
-    @Scheduled(cron = "0 0/2 * * * ?")
-    public void orderTimeOutLogic(){
-        System.out.println("每两分钟间隔执行一次任务"+ new Date());
-        orderService.orderTimeOutLogic();
-    }
-
-    @Reference
-    private CategoryReportService categoryReportService;
-
-    @Scheduled(cron = "* * 1 * * ?")
-    public void creatCateReportDate(){
-        System.out.println("生成类目统计数据!");
-        categoryReportService.creatDate();
-    }
+//    @Reference
+//    private OrderService orderService;
+//    @Scheduled(cron = "0 0/2 * * * ?")
+//    public void orderTimeOutLogic(){
+//        System.out.println("每两分钟间隔执行一次任务"+ new Date());
+//        orderService.orderTimeOutLogic();
+//    }
+//
+//    @Reference
+//    private CategoryReportService categoryReportService;
+//
+//    @Scheduled(cron = "* * 1 * * ?")
+//    public void creatCateReportDate(){
+//        System.out.println("生成类目统计数据!");
+//        categoryReportService.creatDate();
+//    }
 
 
 }
